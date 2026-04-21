@@ -168,7 +168,7 @@ def extract_nogizaka_member_entries(config: dict) -> list[dict]:
             continue
         seen_hrefs.add(href)
         text = link.get_text(" ", strip=True)
-        match = re.search(r"^(?P<name>.+?)\s+(?P<date>\d{2}\.\d{2})\s+(?P<time>\d{2}:\d{2})\s+更新$", text)
+        match = re.search(r"^(?P<name>.+?)\s*\(?(?P<date>\d{2}\.\d{2})\s+(?P<time>\d{2}:\d{2})\s+更新\)?$", text)
         if not match:
             continue
         try:
