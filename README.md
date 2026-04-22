@@ -7,6 +7,7 @@
 
 - `SLACK_WEBHOOK_URL`: Slack Incoming Webhook URL
 - `GEMINI_API_KEY`: Gemini APIキー
+- `GEMINI_MODEL` (任意): 使用するGeminiモデル名。デフォルト `gemini-2.5-flash`
 - `GEMINI_DAILY_REQUEST_LIMIT` (任意): 1日あたりのGemini呼び出し上限。デフォルト `200`
 - `MAX_ARTICLES_PER_RUN` (任意): 1回の実行で処理する記事の最大件数。デフォルト `200`
 - `TARGET_DAYS_AGO` (任意): 何日前の記事を対象にするか。デフォルト `1`（前日分）

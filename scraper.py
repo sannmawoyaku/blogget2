@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-import google.generativeai as genai
+from google import genai
 import json
 import time
 from pathlib import Path
@@ -19,6 +19,7 @@ TARGET_DAYS_AGO = int(os.getenv("TARGET_DAYS_AGO", "1"))
 GEMINI_MIN_INTERVAL_SECONDS = float(os.getenv("GEMINI_MIN_INTERVAL_SECONDS", "5"))
 GEMINI_USAGE_HISTORY_DAYS = int(os.getenv("GEMINI_USAGE_HISTORY_DAYS", "120"))
 BLOG_SOURCES = [source.strip() for source in os.getenv("BLOG_SOURCES", "hinatazaka,nogizaka").split(",") if source.strip()]
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 SOURCE_CONFIGS = {
     "hinatazaka": {
@@ -50,8 +51,7 @@ SOURCE_CONFIGS = {
 }
 
 # --- Gemini初期化 ---
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.5-flash")
+gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 def load_last_processed_dates() -> dict[str, str]:
@@ -246,8 +246,14 @@ def summarize(site_name: str, member: str, title: str, content: str) -> str:
 
 ---
 このブログを日本語で3〜5行に要約してください。メンバーの気持ちや出来事を中心にまとめてください。"""
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    response = gemini_client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=prompt,
+    )
+    text = (response.text or "").strip()
+    if text:
+        return text
+    return "要約結果を取得できませんでした。"
 
 
 def post_to_slack(site_name: str, member: str, title: str, url: str, summary: str, pub_date: datetime):
