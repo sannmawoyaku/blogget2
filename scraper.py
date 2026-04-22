@@ -168,20 +168,27 @@ def extract_nogizaka_member_entries(config: dict) -> list[dict]:
             continue
         seen_hrefs.add(href)
         text = link.get_text(" ", strip=True)
-        match = re.search(r"^(?P<name>.+?)\s*\(?(?P<date>\d{2}\.\d{2})\s+(?P<time>\d{2}:\d{2})\s+更新\)?$", text)
+        # 形式: "愛宕 心響 04.15 20:36 更新" または "愛宕 心響(04.15 20:36 更新)"
+        match = re.search(r"(.+?)\s*[\s(](\d{2}\.\d{2})\s+(\d{2}:\d{2})\s+更新", text)
         if not match:
             continue
+        name = match.group(1).strip()
+        date_part = match.group(2)
+        time_part = match.group(3)
         try:
-            update_date = datetime.strptime(f"{datetime.now().year}.{match.group('date')} {match.group('time')}", "%Y.%m.%d %H:%M")
+            update_date = datetime.strptime(
+                f"{datetime.now().year}.{date_part} {time_part}", "%Y.%m.%d %H:%M"
+            )
         except ValueError:
             continue
         results.append({
             "source_key": "nogizaka",
-            "member": match.group("name").strip(),
+            "member": name,
             "href": href,
             "update_date": update_date,
         })
     return results
+
 
 
 def collect_nogizaka_articles(config: dict, target_date: datetime.date) -> list[dict]:
