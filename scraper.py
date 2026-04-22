@@ -160,6 +160,10 @@ def collect_hinata_articles(config: dict, target_date: datetime.date) -> list[di
 def extract_nogizaka_member_entries(config: dict) -> list[dict]:
     soup = fetch_html(config["member_directory_url"])
     member_links = soup.select(config["member_link_selector"])
+    print(f"  乃木坂メンバーリンク数: {len(member_links)}")
+if member_links:
+    print(f"  最初のリンクテキスト: {repr(member_links[0].get_text(' ', strip=True))}")
+    print(f"  最初のhref: {member_links[0].get('href', '')}")
     results = []
     seen_hrefs = set()
     for link in member_links:
