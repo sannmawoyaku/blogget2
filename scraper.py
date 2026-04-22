@@ -38,7 +38,7 @@ SOURCE_CONFIGS = {
         "site_name": "乃木坂46",
         "member_directory_url": "https://www.nogizaka46.com/s/n46/diary/MEMBER",
         "base_url": "https://www.nogizaka46.com",
-        "member_link_selector": "a[href*='/diary/MEMBER/list?ct=']",
+        "member_link_selector": "a[href*='/diary/MEMBER/list?'][href*='&ct=']",
         "member_list_item_selector": "a.bl--card",
         "title_selector": ".bl--card__ttl",
         "date_selector": ".bl--card__date",
@@ -160,12 +160,9 @@ def collect_hinata_articles(config: dict, target_date: datetime.date) -> list[di
 def extract_nogizaka_member_entries(config: dict) -> list[dict]:
     soup = fetch_html(config["member_directory_url"])
     member_links = soup.select(config["member_link_selector"])
-    print(f"  乃木坂メンバーリンク数: {len(member_links)}")
-if member_links:
-    print(f"  最初のリンクテキスト: {repr(member_links[0].get_text(' ', strip=True))}")
-    print(f"  最初のhref: {member_links[0].get('href', '')}")
     results = []
     seen_hrefs = set()
+    now = datetime.now()
     for link in member_links:
         href = link.get("href", "")
         if not href or href in seen_hrefs:
@@ -180,9 +177,10 @@ if member_links:
         date_part = match.group(2)
         time_part = match.group(3)
         try:
-            update_date = datetime.strptime(
-                f"{datetime.now().year}.{date_part} {time_part}", "%Y.%m.%d %H:%M"
-            )
+            update_date = datetime.strptime(f"{now.year}.{date_part} {time_part}", "%Y.%m.%d %H:%M")
+            # If this date appears far in the future (e.g., Jan run with Dec entries), treat it as previous year.
+            if update_date - now > timedelta(days=32):
+                update_date = update_date.replace(year=now.year - 1)
         except ValueError:
             continue
         results.append({
